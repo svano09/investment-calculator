@@ -1,9 +1,10 @@
+require('dotenv').config();
+
 const express = require('express');
 const mongoose = require('mongoose');
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const cors = require('cors');
-require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
 const calculateRoutes = require('./routes/calculate');
@@ -12,13 +13,30 @@ const calculationsRoutes = require('./routes/calculations');
 const app = express();
 
 // =====================
+// CONFIGURATION
+// =====================
+const SESSION_SECRET = process.env.SESSION_SECRET || 'investment-calculator-secret-2024-fallback';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/investment-calculator';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://investment-calculator-2-vnxg.onrender.com';
+const NODE_ENV = process.env.NODE_ENV || 'production';
+const PORT = process.env.PORT || 5000;
+
+console.log('\n🔍 SERVER CONFIGURATION:');
+console.log('================================');
+console.log('NODE_ENV:', NODE_ENV);
+console.log('SESSION_SECRET:', SESSION_SECRET ? '✅ SET' : '❌ MISSING');
+console.log('MONGODB_URI:', MONGODB_URI ? '✅ SET' : '❌ MISSING');
+console.log('FRONTEND_URL:', FRONTEND_URL);
+console.log('================================\n');
+
+// =====================
 // MIDDLEWARE SETUP
 // =====================
 
-// CORS Configuration - CRITICAL for session cookies
+// CORS Configuration
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'https://investment-calculator-2-vnxg.onrender.com', // Vite default port
-  credentials: true, // Allow cookies
+  origin: FRONTEND_URL,
+  credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
@@ -27,28 +45,28 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Session Configuration - FIXED
+// Session Configuration - FIXED: Use 'secret' not 'origin'
 app.use(session({
-  origin: process.env.FRONTEND_URL || 'https://investment-calculator-2-vnxg.onrender.com',
+  secret: SESSION_SECRET,  // ✅ FIXED: was 'origin' before
   resave: false,
   saveUninitialized: false,
   store: MongoStore.create({
-    mongoUrl: process.env.MONGODB_URI || 'mongodb://localhost:27017/investment-calculator',
-    touchAfter: 24 * 3600, // Lazy session update (24 hours)
+    mongoUrl: MONGODB_URI,
+    touchAfter: 24 * 3600,
     crypto: {
-      secret: process.env.SESSION_SECRET || 'your-super-secret-key-change-in-production'
+      secret: SESSION_SECRET
     }
   }),
   cookie: {
-  secure: process.env.NODE_ENV === 'production', 
-  httpOnly: true,
-  maxAge: 1000 * 60 * 60 * 24 * 7,
-  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax' 
-},
-  name: 'sessionId' // Custom cookie name
+    secure: NODE_ENV === 'production',
+    httpOnly: true,
+    maxAge: 1000 * 60 * 60 * 24 * 7,
+    sameSite: NODE_ENV === 'production' ? 'none' : 'lax'
+  },
+  name: 'sessionId'
 }));
 
-// Request logging - Enhanced
+// Request logging
 app.use((req, res, next) => {
   console.log('\n=== REQUEST ===');
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
@@ -60,11 +78,9 @@ app.use((req, res, next) => {
   next();
 });
 
-
+// =====================
 // DATABASE CONNECTION
-
-
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/investment-calculator';
+// =====================
 
 mongoose.connect(MONGODB_URI)
   .then(() => {
@@ -76,9 +92,9 @@ mongoose.connect(MONGODB_URI)
     process.exit(1);
   });
 
-
+// =====================
 // ROUTES
-
+// =====================
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -87,7 +103,9 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString(),
     database: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected',
     session: !!req.session,
-    authenticated: !!req.session?.userId
+    authenticated: !!req.session?.userId,
+    environment: NODE_ENV,
+    hasSessionSecret: !!SESSION_SECRET
   });
 });
 
@@ -116,27 +134,25 @@ app.use((err, req, res, next) => {
   res.status(err.statusCode || 500).json({
     success: false,
     message: err.message || 'Internal server error',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    ...(NODE_ENV === 'development' && { stack: err.stack })
   });
 });
 
-
+// =====================
 // START SERVER
-
-
-const PORT = process.env.PORT || 5000;
+// =====================
 
 app.listen(PORT, () => {
   console.log('\n🚀 Investment Calculator Backend');
   console.log('================================');
-  console.log(`📡 Server running on: http://localhost:${PORT}`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`💾 Database: ${MONGODB_URI}`);
-  console.log(`🔓 CORS enabled for: http://localhost:5173`);
-  console.log(`🍪 Session: Secure=false, SameSite=lax`);
+  console.log(`📡 Server running on port: ${PORT}`);
+  console.log(`🌍 Environment: ${NODE_ENV}`);
+  console.log(`💾 Database: ${MONGODB_URI.substring(0, 50)}...`);
+  console.log(`🔓 CORS enabled for: ${FRONTEND_URL}`);
+  console.log(`🍪 Session: Secure=${NODE_ENV === 'production'}, SameSite=${NODE_ENV === 'production' ? 'none' : 'lax'}`);
+  console.log(`🔑 Session Secret: ${SESSION_SECRET.substring(0, 20)}...`);
   console.log('================================\n');
 });
-
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
