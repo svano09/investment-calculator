@@ -17,7 +17,7 @@ const app = express();
 
 // CORS Configuration - CRITICAL for session cookies
 app.use(cors({
-  origin: 'http://localhost:5173', // Vite default port
+  origin: 'https://investment-calculator-1-oe78.onrender.com/api', // Vite default port
   credentials: true, // Allow cookies
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -136,6 +136,7 @@ app.listen(PORT, () => {
   console.log(`🍪 Session: Secure=false, SameSite=lax`);
   console.log('================================\n');
 });
+
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
