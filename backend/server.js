@@ -17,7 +17,7 @@ const app = express();
 
 // CORS Configuration - CRITICAL for session cookies
 app.use(cors({
-  origin: 'https://investment-calculator-2-vnxg.onrender.com/api', // Vite default port
+  origin: process.env.FRONTEND_URL || 'https://investment-calculator-2-vnxg.onrender.com', // Vite default port
   credentials: true, // Allow cookies
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -40,11 +40,11 @@ app.use(session({
     }
   }),
   cookie: {
-    secure: false, // false for development (HTTP), true for production (HTTPS)
-    httpOnly: true,
-    maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
-    sameSite: 'lax' // lax for development
-  },
+  secure: process.env.NODE_ENV === 'production', 
+  httpOnly: true,
+  maxAge: 1000 * 60 * 60 * 24 * 7,
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax' 
+},
   name: 'sessionId' // Custom cookie name
 }));
 
