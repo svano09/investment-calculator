@@ -8,6 +8,9 @@ import HistoryPanel from './components/HistoryPanel';
 import LoginModal from './components/LoginModal';
 import api from './config/api';  
 
+// FIXED: Use the correct backend URL
+const API_URL = 'https://investment-calculator-1-oe78.onrender.com/api';
+
 function App() {
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('dca');
@@ -31,7 +34,8 @@ function App() {
 
   const checkAuth = async () => {
     try {
-      const res = await fetch('https://investment-calculator-2-vnxg.onrender.com/api/auth/me', {
+      // FIXED: Use API_URL constant instead of hardcoded URL
+      const res = await fetch(`${API_URL}/auth/me`, {
         credentials: 'include'
       });
       if (res.ok) {

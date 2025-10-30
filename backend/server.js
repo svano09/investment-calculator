@@ -29,7 +29,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Session Configuration - FIXED
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'your-super-secret-key-change-in-production',
+  origin: process.env.FRONTEND_URL || 'https://investment-calculator-2-vnxg.onrender.com',
   resave: false,
   saveUninitialized: false,
   store: MongoStore.create({
