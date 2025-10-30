@@ -31,7 +31,7 @@ function App() {
 
   const checkAuth = async () => {
     try {
-      const res = await fetch('https://investment-calculator-1-oe78.onrender.com/api/auth/me', {
+      const res = await fetch('https://investment-calculator-2-vnxg.onrender.com/api/auth/me', {
         credentials: 'include'
       });
       if (res.ok) {

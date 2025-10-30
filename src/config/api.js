@@ -1,4 +1,4 @@
-const API_URL = 'https://investment-calculator-1-oe78.onrender.com/api';
+const API_URL = 'https://investment-calculator-2-vnxg.onrender.com/api';
 
 const api = {
   // Auth endpoints

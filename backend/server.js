@@ -17,7 +17,7 @@ const app = express();
 
 // CORS Configuration - CRITICAL for session cookies
 app.use(cors({
-  origin: 'https://investment-calculator-1-oe78.onrender.com/api', // Vite default port
+  origin: 'https://investment-calculator-2-vnxg.onrender.com/api', // Vite default port
   credentials: true, // Allow cookies
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
